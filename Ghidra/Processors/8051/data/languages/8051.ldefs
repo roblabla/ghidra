@@ -50,4 +50,15 @@
     <compiler name="default" spec="mx51.cspec" id="default"/>
     <external_name tool="IDA-PRO" name="8051"/>
   </language>
+  <language processor="8051"
+            endian="big"
+            size="16"
+            variant="nrf24lu1p"
+            version="2.0"
+            slafile="nrf24lu1p.sla"
+            processorspec="nrf24lu1p.pspec"
+            id="8051:BE:16:nrf24lu1p">
+    <description>nRF24LU1P</description>
+    <compiler name="default" spec="nrf24lu1p.cspec" id="default"/>
+  </language>
 </language_definitions>

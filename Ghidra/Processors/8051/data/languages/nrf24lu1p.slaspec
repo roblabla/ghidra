@@ -1,0 +1,4 @@
+@define MCS51 ""
+@define EXTMEM_IS_CODE 1
+
+@include "8051_main.sinc"

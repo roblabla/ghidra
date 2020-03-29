@@ -49,7 +49,10 @@ define space BITS     type=ram_space      size=2;
 
 define space CODE     type=ram_space      size=$(PTRSIZE)  default;
 define space INTMEM   type=ram_space      size=1;
+@if defined(EXTMEM_IS_CODE)
+@else
 define space EXTMEM   type=ram_space      size=2;
+@endif
 define space SFR      type=ram_space      size=1;
 define space BITS     type=ram_space      size=1;
 
@@ -524,7 +527,9 @@ APC:     "@A+PC"    is epsilon			{ tmp:$(PTRSIZE) = inst_next + zext(ACC); expor
 
 @if defined(MCS251)
 ATDPTR:  "@"^DPTR   is ophi	& DPTR	{ ptr:3 = 0x010000 + zext(DPTR); export *:1 ptr; } # 8051 External data address mapped into RAM space
-@elif defined(MCS51) 
+@elif defined(MCS51) && defined(EXTMEM_IS_CODE)
+ATDPTR:  "@"^DPTR   is ophi	& DPTR	{ ptr:2 = DPTR; export *[CODE]:1 ptr; }
+@elif defined(MCS51)
 ATDPTR:  "@"^DPTR   is ophi	& DPTR	{ ptr:2 = DPTR; export *[EXTMEM]:1 ptr; }
 @elif defined(MCS80390)
 ATDPTR:  "@"^DPTR   is ophi	& DPTR	{ ptr:3 = zext(DPTR); export *[EXTMEM]:1 ptr; }
@@ -542,7 +547,9 @@ Ri:      @ri       is ri      { export *[INTMEM]:1 ri; }
 
 @if defined(MCS251)
 RiX:     @ri       is ri      { ptr:3 = 0x010000 + zext(ri); export *:1 ptr; } # 8051 8-bit External data address mapped into RAM space
-@elif defined(MCS51) 
+@elif defined(MCS51) && defined(EXTMEM_IS_CODE)
+RiX:     @ri       is ri      { ptr:2 = zext(ri); export *[CODE]:1 ptr; } # limited to 8-bit external data address (I/O state can be used to produce 16-bit addr)
+@elif defined(MCS51)
 RiX:     @ri       is ri      { ptr:2 = zext(ri); export *[EXTMEM]:1 ptr; } # limited to 8-bit external data address (I/O state can be used to produce 16-bit addr)
 @elif defined(MCS80390) 
 RiX:     @ri       is ri      { ptr:3 = zext(ri); export *[EXTMEM]:1 ptr; } # tocheck
