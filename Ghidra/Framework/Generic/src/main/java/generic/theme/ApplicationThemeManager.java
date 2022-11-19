@@ -53,12 +53,12 @@ public class ApplicationThemeManager extends ThemeManager {
 	private GThemeValueMap changedValuesMap = new GThemeValueMap();
 	protected LookAndFeelManager lookAndFeelManager;
 
-	private bool isHeadless;
+	private boolean isHeadless;
 
 	/**
 	 * Initialized the Theme and its values for the application.
 	 */
-	public static void initialize(bool isHeadless) {
+	public static void initialize(boolean isHeadless) {
 		if (INSTANCE instanceof ApplicationThemeManager) {
 			Msg.error(ThemeManager.class, "Attempted to initialize theming more than once!");
 			return;
@@ -74,7 +74,7 @@ public class ApplicationThemeManager extends ThemeManager {
 		installInGui();
 	}
 
-	protected void doInitialize(bool isHeadless) {
+	protected void doInitialize(boolean isHeadless) {
 		this.isHeadless = isHeadless;
 
 		if (!isHeadless)
@@ -141,7 +141,8 @@ public class ApplicationThemeManager extends ThemeManager {
 			LafType lafType = theme.getLookAndFeelType();
 			lookAndFeelManager = lafType.getLookAndFeelManager(this);
 			try {
-				lookAndFeelManager.installLookAndFeel();
+				if (!isHeadless)
+					lookAndFeelManager.installLookAndFeel();
 				themePreferences.save(theme);
 				notifyThemeChanged(new AllValuesChangedThemeEvent(true));
 			}
