@@ -143,6 +143,12 @@ public class ApplicationThemeManager extends ThemeManager {
 			try {
 				if (!isHeadless)
 					lookAndFeelManager.installLookAndFeel();
+
+				if (this.isDarkTheme())
+					System.setProperty("apple.awt.application.appearance", "NSAppearanceNameDarkAqua");
+				else
+					System.setProperty("apple.awt.application.appearance", "NSAppearanceNameAqua");
+
 				themePreferences.save(theme);
 				notifyThemeChanged(new AllValuesChangedThemeEvent(true));
 			}
