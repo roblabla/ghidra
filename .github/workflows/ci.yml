@@ -1,0 +1,134 @@
+name: Ghidra Build
+on: push
+
+jobs:
+  build-natives:
+    strategy:
+      matrix:
+        include:
+          #- target: win_x86_32
+          #  os: windows-latest
+          - target: win_x86_64
+            os: windows-latest
+          - target: linux_x86_64
+            os: ubuntu-latest
+          - target: linux_arm_64
+            os: ubuntu-latest
+          - target: mac_x86_64
+            os: macos-latest
+          - target: mac_arm_64
+            os: macos-latest
+      fail-fast: false
+      
+    name: Build ${{ matrix.target }} Binaries
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 17
+      - name: Install bison
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          choco install winflexbison
+          ren "C:\ProgramData\chocolatey\bin\win_bison.exe" "bison.exe"
+          ren "C:\ProgramData\chocolatey\bin\win_flex.exe" "flex.exe"
+      - uses: eskatos/gradle-command-action@v1
+        with:
+          gradle-version: 7.3.3
+          arguments: --init-script gradle/support/fetchDependencies.gradle init
+      - name: Setup Linux ARM toolchain
+        if: ${{ matrix.target == 'linux_arm_64' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install g++-aarch64-linux-gnu libc6-dev-arm64-cross
+          mkdir -p $HOME/.gradle
+          cp ghidra-ci-roblabla/linux_arm_64.init.gradle $HOME/.gradle/init.gradle
+      - name: Setup MacOS ARM toolchain
+        if: ${{ matrix.target == 'mac_arm_64' }}
+        run: |
+          mkdir -p $HOME/.gradle
+          cp ghidra-ci-roblabla/mac_arm_64.init.gradle $HOME/.gradle/init.gradle
+      - uses: eskatos/gradle-command-action@v1
+        with:
+          gradle-version: 7.3.3
+          arguments: buildNatives_${{ matrix.target }}
+      - name: Upload Windows compilation output.
+        uses: actions/upload-artifact@v2
+        with:
+          name: natives-${{ matrix.target }}
+          path: "**/build/os/${{ matrix.target }}/"
+
+  dist:
+    name: "Build Ghidra distributable zip"
+    needs: ["build-natives"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      #- name: Download Windows x86 binaries
+      #  uses: actions/download-artifact@v2
+      #  with:
+      #    name: natives-win_x86_32
+          
+      - name: Download Windows x86_64 binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: natives-win_x86_64
+          
+      - name: Download MacOS x86_64 binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: natives-mac_x86_64
+
+      - name: Download MacOS ARM64 binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: natives-mac_arm_64
+
+      - name: Download Linux x86_64 binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: natives-linux_x86_64
+
+      - name: Download Linux ARM64 binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: natives-linux_arm_64
+
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 17
+      - name: Fetch the Ghidra dependencies.
+        uses: eskatos/gradle-command-action@v1
+        with:
+          gradle-version: 7.3.3
+          arguments: --init-script gradle/support/fetchDependencies.gradle init
+      # TODO: Pre-build GhidraDev
+      - name: Checkout ghidra-data
+        uses: actions/checkout@v2
+        with:
+          repository: NationalSecurityAgency/ghidra-data
+          path: 'ghidra-data'
+      - name: Copy ghidra-data files into the appropriate directories
+        run: cp -r ghidra-data/FunctionID/* Ghidra/Features/FunctionID/data
+      - name: Build ghidra, create a cross-platform distribution
+        uses: eskatos/gradle-command-action@v1
+        with:
+          gradle-version: 7.3.3
+          arguments: -x ip -PallPlatforms buildGhidra
+      # TODO: remove upload-artifact when create release is sure to work
+      - name: Upload final dist
+        uses: actions/upload-artifact@v2
+        with:
+          path: "build/dist/*"
+      - name: Remove temporary artifacts
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          name: |
+            natives-win_x86_32
+            natives-win_x86_64
+            natives-mac_x86_64
+            natives-mac_arm_64
+            natives-linux_x86_64
+            natives-linux_arm_64
