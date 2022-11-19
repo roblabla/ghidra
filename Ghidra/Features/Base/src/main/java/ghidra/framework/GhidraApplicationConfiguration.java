@@ -44,7 +44,7 @@ public class GhidraApplicationConfiguration extends HeadlessGhidraApplicationCon
 
 	@Override
 	protected void initializeApplication() {
-		ApplicationThemeManager.initialize();
+		ApplicationThemeManager.initialize(false);
 		LookAndFeelUtils.performPlatformSpecificFixups();
 
 		if (showSplashScreen) {

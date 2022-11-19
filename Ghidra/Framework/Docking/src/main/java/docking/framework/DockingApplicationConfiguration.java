@@ -49,7 +49,7 @@ public class DockingApplicationConfiguration extends ApplicationConfiguration {
 	protected void initializeApplication() {
 		super.initializeApplication();
 
-		ApplicationThemeManager.initialize();
+		ApplicationThemeManager.initialize(false);
 		LookAndFeelUtils.performPlatformSpecificFixups();
 
 		if (showSplashScreen) {

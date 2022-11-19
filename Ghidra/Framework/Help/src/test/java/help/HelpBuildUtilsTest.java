@@ -101,7 +101,7 @@ public class HelpBuildUtilsTest extends AbstractHelpTest {
 
 	@Test
 	public void testLocateReferences_Icons() throws URISyntaxException {
-		ApplicationThemeManager.initialize();
+		ApplicationThemeManager.initialize(false);
 		Path sourceFile = Paths.get(HTML_FILE_PATH);
 		String reference = "Icons.REFRESH_ICON"; // see Icons class
 		ImageLocation location = HelpBuildUtils.locateImageReference(sourceFile, reference);

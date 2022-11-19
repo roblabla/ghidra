@@ -70,12 +70,12 @@ public class GHelpBuilder {
 		ApplicationConfiguration config = new ApplicationConfiguration() {
 			@Override
 			protected void initializeApplication() {
-				ApplicationThemeManager.initialize();
+				ApplicationThemeManager.initialize(true);
 			}
 
 			@Override
 			public boolean isHeadless() {
-				return false;
+				return true;
 			}
 		};
 		Application.initializeApplication(new GenericApplicationLayout("Help Builder", "0.1"),
